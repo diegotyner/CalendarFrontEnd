@@ -1,51 +1,44 @@
-
+require('dotenv').config();
+const endpoint = process.env.API_ENDPOINT
 
 const calendar = document.getElementById("calendarWrapper");
 const calendarHead = document.getElementById("calendarHead");
 
+
+
+eventDatabase = []
 /* Structure of DS:
     eventDatabase (list containing dicts)
     | index by day
-    --> daysEvents (dict leading to list)
-       | hash by time
-       --> listEvents (list of events at a time)
-           | just a list
-           --> pointers to events
+    --> daysEvents (list of events)
 */
 
+const day_to_num = new Map([
+    ["Mo", 0], // Monday
+    ["Tu", 1], // Tuesday
+    ["We", 2], // Wednesday
+    ["Th", 3], // Thursday
+    ["Fr", 4], // Friday
+    ["Sa", 5], // Saturday
+    ["Su", 6]  // Sunday
+]);
 days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 event_count = 0;
-eventDatabase = []
-// monday - 0
-// tuesday - 1 
-// wednesday - 2
-// thursday - 3
-// fri - 4
-// sat - 5
-// sun - 6
+
 
 window.onload = function() {
     createCalendar();
-    console.log("This executes")
-    addFirstEvent();
-    // constructor(id, name, date, description, start, end)
-    let event5 = new EventObject("event5", "walk", "We", "woof", 1100, 1230)
-    addEventToCalendar(event5.date, event5)
-
-    let event3 = new EventObject("event3", "Walk", "We", "woof", 1200, 1430)
-    addEventToCalendar(event3.date, event3)
-    
-    let event2 = new EventObject("event2", "Jog", "We", "woof", 1000, 1800)
-    addEventToCalendar(event2.date, event2)
-
-    let event4 = new EventObject("event4", "Walk", "We", "woof", 1300, 1330)
-    addEventToCalendar(event4.date, event4)
+    createEvents();
+    updateCalendar("We");
     
 }
 
 
-function createCalendar() {
+function createEvents(raw_events) {
+    
+}
 
+function createCalendar() {
     for (let i = 0; i < 24; i++) {
         let slot00 = document.createElement("div");
         // slot00.id = (Math.floor((i/10) % 10)).toString() + (i%10).toString() + ":00";
@@ -90,117 +83,184 @@ function createCalendar() {
     }
 }
 
-function addFirstEvent() {
-    console.log("This executes too?")
-    let day = document.getElementById("Mo");
-
-    let event = document.createElement("div");
-    event.classList.add("event");
-    event.id = ("event1");
-    event.style.position = "absolute";
-    event.style.inset = "700px 10px 100px 10px";
-    day.appendChild(event)
-}
 
 
-const num_to_day = new Map([
-    ["Mo", 0], // Monday
-    ["Tu", 1], // Tuesday
-    ["We", 2], // Wednesday
-    ["Th", 3], // Thursday
-    ["Fr", 4], // Friday
-    ["Sa", 5], // Saturday
-    ["Su", 6]  // Sunday
-]);
+function updateCalendar(day) {
+    var dayOfWeek = day;
 
-
-function addEvent(dayNum, time, event) {
-    // Check if the day exists in the database
-    if (!eventDatabase[dayNum]) {
-        eventDatabase[dayNum] = new Map();
+    var STARTTIME = 0,
+      ENDTIME = 24,
+      HEIGHTOFHOUR = 40,
+      h, m, e,
+      ts, event, leftindex;
+    
+    // add the times to the first table cell.  the height of the span is set in the css to 60 which is the same as the var above
+    
+    // set up timeslots
+    // it is 1 for each minute of the day
+    
+    var MINUTESINDAY = (ENDTIME - STARTTIME) * 60;
+    
+    var timeslots = [];
+    for (m=0; m<MINUTESINDAY; m++) {
+      timeslots.push([]);
     }
+    
+    // just need list of events with properties: id, starttime, and endtime (strings)
+    // events would normally be loaded by a function but i'm hand coding them for simplicity
+    // var events = [
+    //   {id: 'A', starttime: '09:00', endtime: '12:00'},
+    //   {id: 'B', starttime: '10:00', endtime: '14:00'},
+    //   {id: 'B2', starttime: '10:15', endtime: '13:00'},
+    //   {id: 'B3', starttime: '10:15', endtime: '13:00'},
+    //   {id: 'C', starttime: '12:00', endtime: '14:00'},
+    //   {id: 'A2', starttime: '13:03', endtime: '14:30'},
+    //   {id: 'D', starttime: '14:20', endtime: '16:30'},
+    //   {id: 'E', starttime: '15:10', endtime: '16:30'},
+    //   {id: 'F', starttime: '16:30', endtime: '17:00'}
+    //   ];
 
-    // Check if the time exists for the day
-    if (!eventDatabase[dayNum].has(time)) {
-        eventDatabase[dayNum].set(time, []);
+    var events = eventDatabase[dayOfWeek]
+    
+    // the eventids will probably come from a database and cannot be numeric so we
+    // use the EventsById object as a kind of lookup - well use the ids as properties of this
+    // object and then get them using array notation.
+    var EventsById = {};
+    setUpEvents(events);
+    
+    // load events into timeslots - events must be sorted by starttime already
+    var numEvents = events.length;
+    for (e=0; e<numEvents; e++) {
+      event = events[e];
+      for (m=event.start; m<event.stop; m++) {
+        timeslots[m].push(event.id);
+      }
     }
-
-    // Add the event to the list of events for that time
-    eventDatabase[dayNum].get(time).push(event);
-    let next30 = time + 30
-    if ((next30%100)/60 >= 1) { next30 += 40 }
-    if (next30 <= event.end) {
-        addEvent(dayNum, next30, event)
-    }     
-}
-
-/* Structure of DS:
-    eventDatabase (list containing dicts)
-    | index by day
-    --> daysEvents (dict leading to list)
-       | hash by time
-       --> listEvents (list of events at a time)
-           | just a list
-           --> pointers to events
-*/
-function addEventToCalendar(day, event) {
-    // day has to be first 2 letters
-    let dayNum = num_to_day.get(day)
-    addEvent(dayNum, event.start, event)
-    let col = document.getElementById(day)
-
-    let newEvent = document.createElement("div");
-    newEvent.classList.add("event");
-    newEvent.style.position = "absolute";
-    newEvent.id = event.id
-    event_count++
-    var px_from_top = 40*(Math.floor(event.start / 100) + (event.start%100)/60)
-    var px_from_bottom = 960 - 40*(Math.floor(event.end / 100) + (event.end%100)/60)
-    var col_width = col.clientWidth
-    newEvent.style.inset = 
-        px_from_top.toString() + "px 5px " 
-        + px_from_bottom.toString() + "px";
-    col.appendChild(newEvent)
     
-    
-
-    
-    // (Math.floor((i/10) % 10)).toString() + (i%10).toString()
-    for (let i = 0; i + event.start <= event.end; i += 30) {
-        let curTime = i + event.start;
-        if ((curTime%100)/60 >= 1) { 
-            curTime += 40 
+    // take the timeslots one at a time
+    // for each event in the timeslot make sure that it has the right numcolumns (max amount for that event)
+    // then check if its leftindex has been set
+    // if not then set it.  find the first free space in that timeslot
+    for (m=0; m<MINUTESINDAY; m++) {
+      ts = timeslots[m];
+      for (e=0; e<ts.length; e++) {
+        event = EventsById[ ts[e] ];
+        var max = ts.length;
+        ts.forEach(function(id){
+            var evt = EventsById[id];
+            max=(evt.numcolumns>max)?evt.numcolumns:max;
+          });
+      
+        if (event.numcolumns <= max) {    
+          event.numcolumns = max;
         }
-        let events = eventDatabase[dayNum].get(curTime)
-        if (!events) { continue }
-        for (let j = 1; j < events.length; j++){
-            let html_element = document.getElementById(events[j].id)
-            var px_from_top = 40*(Math.floor(events[j].start / 100) + (events[j].start%100)/60)
-            var px_from_bottom = 960-40*(Math.floor(events[j].end / 100) + (events[j].end%100)/60)
-            var col_width = col.clientWidth
-            var px_from_left = (j / events.length) * col_width
-            var px_from_right = col_width - ((j +1) / events.length)*col_width
-            html_element.style.inset = 
-                px_from_top.toString() + "px " 
-                + px_from_right.toString() + "px " 
-                + px_from_bottom.toString() + "px " 
-                + px_from_left.toString() + "px";
-            html_element.style.zIndex = j;
+       
+        if (event.leftindex == -1) {
+          leftindex = 0;
+          while (! isFreeSpace(ts, leftindex, event.id)) {
+              leftindex++;
+          }
+          event.leftindex = leftindex;
         }
+      }
+    }
+    // UPDATE CODE AFTER COMMENT
+    // fix numcolumns
+    for (m=0; m<MINUTESINDAY; m++) {
+      ts = timeslots[m];
+      for (e=0; e<ts.length; e++) {
+        event = EventsById[ ts[e] ];
+        var max = ts.length;
+        ts.forEach(function(id){
+            var evt = EventsById[id];
+            max=(evt.numcolumns>max)?evt.numcolumns:max;
+          });
+      
+        if (event.numcolumns <= max) {    
+          event.numcolumns = max;
+        }
+      }
+    }
+    
+    
+    layoutEvents();
+    
+    function isFreeSpace(ts, leftindex, eventid) {
+      var tslength = ts.length;
+      var event;
+      for (var i=0; i<tslength; ++i) {
+        // get the event in this timeslot location
+        event = EventsById[ts[i]];
+        if (event.leftindex == leftindex) {
+          if (event.id != eventid) {
+            return false; // left index taken
+          } else {
+            return true; // this event is in this place
+          }
+        }
+      }
+      return true;
+    }
+    
+    function setUpEvents(events) {
+        var numEvents = events.length;
+        var event, e, pos, stH, stM, etH, etM, height;
+
+        for (e=0; e<numEvents; e++) {
+            event = events[e];
+            event.leftindex = -1;
+            event.numcolumns = 0;
+            pos = event.starttime.indexOf(':');
+            stH = parseInt( event.starttime.substr(0, pos), 10);
+            stM = parseInt( event.starttime.substr(pos+1), 10) / 60;
+            // need its positions top and bottom in minutes
+            event.start = ((stH - STARTTIME) * 60) + (stM * 60);
+            event.topPos = ((stH - STARTTIME) * HEIGHTOFHOUR) + (stM * HEIGHTOFHOUR);
+            
+            pos = event.endtime.indexOf(':');
+            etH = parseInt( event.endtime.substr(0, pos), 10);
+            etM = parseInt( event.endtime.substr(pos+1), 10) / 60;
+            // need its positions top and bottom in minutes
+            event.stop = ((etH - STARTTIME) * 60) + (etM * 60);
+            
+            height = (etH - stH) * HEIGHTOFHOUR;
+            height -= stM * HEIGHTOFHOUR;
+            height += etM * HEIGHTOFHOUR;
+            event.height = height;
+            EventsById[event.id] = event;
+        }  
+        console.log(EventsById);
+    }
+    
+    function layoutEvents() {
+      var numEvents = events.length;
+       var event, e, numx, xfactor, left;
+      
+      for (e=0; e<numEvents; e++) {
+        event = events[e];
         
+        numx = event.numcolumns;
+        xfactor = 1 / numx;
+        left = (event.leftindex * xfactor * 100);
+        
+
+        
+        // Create a new div element
+        var cal_data = document.createElement("div");
+        cal_data.className = "cal-data";
+        cal_data.id = "cal-data-" + event.id;
+        cal_data.innerHTML = "<h4>" + event.starttime + " - " + event.endtime + '#' + numx + "</h4>";
+        cal_data.style.top = Math.round(event.topPos) + "px";
+        cal_data.style.height = Math.round(event.height) + "px";
+        cal_data.style.width = Math.floor(100 * xfactor) + "%";
+        cal_data.style.left = left + "%";
+        document.getElementById(dayOfWeek).appendChild(cal_data);
+
+      }
     }
+};
 
-}
 
-
-function floorTime(time) {
-    let minutes = time%15;
-    time -= minutes;
-    return time;
-}
-
-// Maybe add a property for how smushed it is at the moment? 
-// ie: 1/3 if first of split in 3. 1/1 if alone. 2/3 if middle. 
 class EventObject { 
     constructor(id, name, date, description, start, end) {
         this.id = id
@@ -208,11 +268,85 @@ class EventObject {
         this.name = name; // Event name (summary)
         this.date = date;
         this.description = description; // The comments/description to event
-        this.start = start;
-        this.end = end;
+        this.starttime = start;
+        this.endtime = end;
     }
 }
 
+
+
+
+
+
+// function addEvent(dayNum, time, event) {
+//     // Check if the day exists in the database
+//     if (!eventDatabase[dayNum]) {
+//         eventDatabase[dayNum] = new Map();
+//     }
+
+//     // Check if the time exists for the day
+//     if (!eventDatabase[dayNum].has(time)) {
+//         eventDatabase[dayNum].set(time, []);
+//     }
+
+//     // Add the event to the list of events for that time
+//     eventDatabase[dayNum].get(time).push(event);
+//     let next30 = time + 30
+//     if ((next30%100)/60 >= 1) { next30 += 40 }
+//     if (next30 <= event.end) {
+//         addEvent(dayNum, next30, event)
+//     }     
+// }
+
+// function addEventToCalendar(day, event) {
+//     // day has to be first 2 letters
+//     let dayNum = day_to_num.get(day)
+//     addEvent(dayNum, floorTime(event.start), event)
+//     let col = document.getElementById(day)
+
+//     let newEvent = document.createElement("div");
+//     newEvent.classList.add("event");
+//     newEvent.style.position = "absolute";
+//     newEvent.id = event.id
+//     event_count++
+//     var px_from_top = 40*(Math.floor(event.start / 100) + (event.start%100)/60)
+//     var px_from_bottom = 960 - 40*(Math.floor(event.end / 100) + (event.end%100)/60)
+//     var col_width = col.clientWidth
+//     newEvent.style.inset = 
+//         px_from_top.toString() + "px 5px " 
+//         + px_from_bottom.toString() + "px";
+//     col.appendChild(newEvent)
+
+//     // (Math.floor((i/10) % 10)).toString() + (i%10).toString()
+//     for (let i = 0; i + event.start <= event.end; i += 30) {
+//         let curTime = i + event.start;
+//         if ((curTime%100)/60 >= 1) { 
+//             curTime += 40 
+//         }
+//         let events = eventDatabase[dayNum].get(curTime)
+//         if (!events) { continue }
+//         for (let j = 1; j < events.length; j++){
+//             let html_element = document.getElementById(events[j].id)
+//             var px_from_top = 40*(Math.floor(events[j].start / 100) + (events[j].start%100)/60)
+//             var px_from_bottom = 960-40*(Math.floor(events[j].end / 100) + (events[j].end%100)/60)
+//             var col_width = col.clientWidth
+//             var px_from_left = (j / events.length) * col_width
+//             var px_from_right = col_width - ((j +1) / events.length)*col_width
+//             html_element.style.inset = 
+//                 px_from_top.toString() + "px " 
+//                 + px_from_right.toString() + "px " 
+//                 + px_from_bottom.toString() + "px " 
+//                 + px_from_left.toString() + "px";
+//             html_element.style.zIndex = j;
+//         }
+//     }
+// }
+
+// function floorTime(time) {
+//     let minutes = time%100;
+//     time -= minutes;
+//     return time;
+// }
 
 
 
