@@ -29,7 +29,7 @@ root {
     overflow-y: auto;
     width: max(512px, 60%);
     margin: 0 auto;
-    border: 5px solid red;
+    border: 4px solid darkblue;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     grid-template-rows: repeat(49, 20px);
@@ -41,7 +41,7 @@ root {
     left: 50px;
     width: max(512px, 60%);
     margin: 0 auto;
-    border: 5px solid red;
+    border: 4px solid darkblue;
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
     grid-template-rows: 20px;
