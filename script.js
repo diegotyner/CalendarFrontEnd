@@ -1,5 +1,5 @@
-require('dotenv').config();
-const endpoint = process.env.API_ENDPOINT
+// require('dotenv').config();
+// const endpoint = process.env.API_ENDPOINT
 
 const calendar = document.getElementById("calendarWrapper");
 const calendarHead = document.getElementById("calendarHead");
@@ -22,20 +22,39 @@ const day_to_num = new Map([
     ["Sa", 5], // Saturday
     ["Su", 6]  // Sunday
 ]);
-days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 event_count = 0;
 
 
-window.onload = function() {
+window.onload = async function() {
     createCalendar();
-    createEvents();
-    updateCalendar("We");
+
+    
+
+    const payload = await getData();
+    // console.log(payload)
+      
+    const today = new Date();
+    for (let i =0; i<7; i++) {
+      const curDay = new Date();
+      curDay.setDate(today.getDate() + i);
+      list_dayEvents = payload[curDay.toISOString().split('T')[0]];
+      // console.log(list_dayEvents);
+      updateCalendar(list_dayEvents, i);
+
+    }
+
+    // updateCalendar("We");
     
 }
 
-
-function createEvents(raw_events) {
-    
+async function getData() {
+  try {
+    const response = await axios.get('https://calendar-back-end-snowy.vercel.app/home');
+    return response.data; // Return the data to be used in the calling function
+  } catch (error) {
+      console.error('Error fetching data:', error);
+  }
 }
 
 function createCalendar() {
@@ -67,16 +86,20 @@ function createCalendar() {
         calendar.append(gray);
     }
 
+    const today = new Date();
     for (let i = 0; i < 7; i++) {
+        const curDay = new Date();
+        curDay.setDate(today.getDate() + i);
+
         let day = document.createElement("div");
         day.classList.add("day");
-        day.innerHTML = days[i];
+        day.innerHTML = days[curDay.getDay()];
         calendarHead.append(day);
         calendar.append(document.createElement("div"))
 
         let day_column = document.createElement("div");
         day_column.classList.add("day-column");
-        day_column.id = days[i];
+        day_column.id = i;
         day_column.style.position = "relative";
         day_column.style.gridArea = "2 / " + (i+2).toString() + " / -1 / " + (i+2).toString();
         calendar.append(day_column);
@@ -85,8 +108,8 @@ function createCalendar() {
 
 
 
-function updateCalendar(day) {
-    var dayOfWeek = day;
+function updateCalendar(event_list, day) {
+    // var dayOfWeek = day;
 
     var STARTTIME = 0,
       ENDTIME = 24,
@@ -120,18 +143,19 @@ function updateCalendar(day) {
     //   {id: 'F', starttime: '16:30', endtime: '17:00'}
     //   ];
 
-    var events = eventDatabase[dayOfWeek]
+    // var events = eventDatabase[dayOfWeek]
     
     // the eventids will probably come from a database and cannot be numeric so we
     // use the EventsById object as a kind of lookup - well use the ids as properties of this
     // object and then get them using array notation.
     var EventsById = {};
-    setUpEvents(events);
+    const events = setUpEvents(event_list);
     
     // load events into timeslots - events must be sorted by starttime already
     var numEvents = events.length;
     for (e=0; e<numEvents; e++) {
       event = events[e];
+      console.log(event)
       for (m=event.start; m<event.stop; m++) {
         timeslots[m].push(event.id);
       }
@@ -183,7 +207,7 @@ function updateCalendar(day) {
     }
     
     
-    layoutEvents();
+    layoutEvents(day);
     
     function isFreeSpace(ts, leftindex, eventid) {
       var tslength = ts.length;
@@ -202,7 +226,12 @@ function updateCalendar(day) {
       return true;
     }
     
-    function setUpEvents(events) {
+    function setUpEvents(event_list) {
+        const events = event_list.filter(event => event.starttime.split('T').length > 1);
+        events.forEach(event => {
+          event.starttime = event.starttime.split('T')[1]
+          event.endtime = event.endtime.split('T')[1]
+        })
         var numEvents = events.length;
         var event, e, pos, stH, stM, etH, etM, height;
 
@@ -229,12 +258,13 @@ function updateCalendar(day) {
             event.height = height;
             EventsById[event.id] = event;
         }  
-        console.log(EventsById);
+        // console.log(EventsById);
+        return events
     }
     
-    function layoutEvents() {
+    function layoutEvents(column_id) {
       var numEvents = events.length;
-       var event, e, numx, xfactor, left;
+      var event, e, numx, xfactor, left;
       
       for (e=0; e<numEvents; e++) {
         event = events[e];
@@ -254,7 +284,15 @@ function updateCalendar(day) {
         cal_data.style.height = Math.round(event.height) + "px";
         cal_data.style.width = Math.floor(100 * xfactor) + "%";
         cal_data.style.left = left + "%";
-        document.getElementById(dayOfWeek).appendChild(cal_data);
+
+        console.log(event)
+        if (event.user == "diegotyner59000@gmail.com") {
+          cal_data.classList.add("user1")
+        } else {
+          cal_data.classList.add("user2")
+        }
+
+        document.getElementById(column_id).appendChild(cal_data);
 
       }
     }
@@ -262,8 +300,9 @@ function updateCalendar(day) {
 
 
 class EventObject { 
-    constructor(id, name, date, description, start, end) {
-        this.id = id
+    constructor(id, user, calendar, name, date, description, start, end) {
+        this.id = id;
+        this.user = user;
         this.calendar = calendar;
         this.name = name; // Event name (summary)
         this.date = date;

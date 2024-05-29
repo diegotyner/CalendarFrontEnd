@@ -46,7 +46,7 @@ root {
     grid-template-columns: repeat(8, minmax(0, 1fr));
     grid-template-rows: 20px;
     grid-auto-flow: column;
-    z-index: 2;
+    z-index: 20;
   }
 
   .header {
@@ -72,8 +72,6 @@ root {
   .event {
     text-align: center;
     border-radius: 15px;
-    background-color: aqua;
-    border: 2px solid darkcyan;
   }
 
   .day {
@@ -122,4 +120,14 @@ root {
   div.cal-data p {
     margin: 0;
     padding: 0px 10px 10px 10px;
+  }
+
+  .cal-data.user1 {
+    background-color: aqua;
+    border: 2px solid darkcyan;
+  }
+
+  .cal-data.user2 {
+    background-color: violet;
+    border: 2px solid darkviolet;
   }
