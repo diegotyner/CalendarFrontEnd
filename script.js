@@ -29,23 +29,16 @@ event_count = 0;
 window.onload = async function() {
     createCalendar();
 
-    
-
     const payload = await getData();
-    // console.log(payload)
       
     const today = new Date();
     for (let i =0; i<7; i++) {
       const curDay = new Date();
       curDay.setDate(today.getDate() + i);
       list_dayEvents = payload[curDay.toISOString().split('T')[0]];
-      // console.log(list_dayEvents);
       updateCalendar(list_dayEvents, i);
 
-    }
-
-    // updateCalendar("We");
-    
+    }    
 }
 
 async function getData() {
@@ -109,18 +102,11 @@ function createCalendar() {
 
 
 function updateCalendar(event_list, day) {
-    // var dayOfWeek = day;
-
     var STARTTIME = 0,
       ENDTIME = 24,
       HEIGHTOFHOUR = 40,
       h, m, e,
       ts, event, leftindex;
-    
-    // add the times to the first table cell.  the height of the span is set in the css to 60 which is the same as the var above
-    
-    // set up timeslots
-    // it is 1 for each minute of the day
     
     var MINUTESINDAY = (ENDTIME - STARTTIME) * 60;
     
@@ -129,33 +115,16 @@ function updateCalendar(event_list, day) {
       timeslots.push([]);
     }
     
-    // just need list of events with properties: id, starttime, and endtime (strings)
-    // events would normally be loaded by a function but i'm hand coding them for simplicity
-    // var events = [
-    //   {id: 'A', starttime: '09:00', endtime: '12:00'},
-    //   {id: 'B', starttime: '10:00', endtime: '14:00'},
-    //   {id: 'B2', starttime: '10:15', endtime: '13:00'},
-    //   {id: 'B3', starttime: '10:15', endtime: '13:00'},
-    //   {id: 'C', starttime: '12:00', endtime: '14:00'},
-    //   {id: 'A2', starttime: '13:03', endtime: '14:30'},
-    //   {id: 'D', starttime: '14:20', endtime: '16:30'},
-    //   {id: 'E', starttime: '15:10', endtime: '16:30'},
-    //   {id: 'F', starttime: '16:30', endtime: '17:00'}
-    //   ];
-
-    // var events = eventDatabase[dayOfWeek]
-    
     // the eventids will probably come from a database and cannot be numeric so we
     // use the EventsById object as a kind of lookup - well use the ids as properties of this
     // object and then get them using array notation.
     var EventsById = {};
     const events = setUpEvents(event_list);
-    
+
     // load events into timeslots - events must be sorted by starttime already
     var numEvents = events.length;
     for (e=0; e<numEvents; e++) {
       event = events[e];
-      console.log(event)
       for (m=event.start; m<event.stop; m++) {
         timeslots[m].push(event.id);
       }
@@ -206,7 +175,6 @@ function updateCalendar(event_list, day) {
       }
     }
     
-    
     layoutEvents(day);
     
     function isFreeSpace(ts, leftindex, eventid) {
@@ -232,6 +200,21 @@ function updateCalendar(event_list, day) {
           event.starttime = event.starttime.split('T')[1]
           event.endtime = event.endtime.split('T')[1]
         })
+
+        events.sort(function(a, b) {
+          var posa = a.starttime.indexOf(':');
+          var posb = b.starttime.indexOf(':');
+        
+          var hours_a = parseInt(a.starttime.substr(0, posa), 10);
+          var minutes_a = parseInt(a.starttime.substr(posa + 1, 2), 10);
+          var hours_b = parseInt(b.starttime.substr(0, posb), 10);
+          var minutes_b = parseInt(b.starttime.substr(posb + 1, 2), 10);
+
+          var size_time_a = hours_a + minutes_a / 60;
+          var size_time_b = hours_b + minutes_b / 60;
+          return size_time_a - size_time_b;
+        });
+
         var numEvents = events.length;
         var event, e, pos, stH, stM, etH, etM, height;
 
@@ -258,7 +241,6 @@ function updateCalendar(event_list, day) {
             event.height = height;
             EventsById[event.id] = event;
         }  
-        // console.log(EventsById);
         return events
     }
     
@@ -285,7 +267,7 @@ function updateCalendar(event_list, day) {
         cal_data.style.width = Math.floor(100 * xfactor) + "%";
         cal_data.style.left = left + "%";
 
-        console.log(event)
+        // console.log(event)
         if (event.user == "diegotyner59000@gmail.com") {
           cal_data.classList.add("user1")
         } else {
