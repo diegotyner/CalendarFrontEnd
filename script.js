@@ -32,6 +32,7 @@ window.onload = async function() {
     const payload = await getData();
       
     const today = new Date();
+    console.log(today)
     for (let i =0; i<7; i++) {
       const curDay = new Date();
       curDay.setDate(today.getDate() + i);
@@ -73,11 +74,6 @@ function createCalendar() {
         lightgray.style.gridArea = (2*i + 2).toString() + " / 2 / " + (2*i + 2).toString() + " / -1";
         calendar.append(lightgray);
 
-        // let slot30 = document.createElement("div");
-        // // slot30.id = (Math.floor((i/10) % 10)).toString() + (i%10).toString() + ":30";
-        // slot30.classList.add("time-slot");
-        // slot30.innerHTML += (Math.floor((i/10) % 10)).toString() + (i%10).toString() + ":30";
-        // calendar.append(slot30);
         let gray = document.createElement("div");
         gray.classList.add("gray-line");
         gray.style.gridArea = (2*i + 3).toString() + " / 2 / " + (2*i + 3).toString() + " / -1";
