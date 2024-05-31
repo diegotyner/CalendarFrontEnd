@@ -41,6 +41,10 @@ window.onload = async function() {
     }    
 }
 
+document.getElementById("logInButton").onclick = function () {
+  window.open("https://calendar-back-end-snowy.vercel.app/auth/google/");
+};
+
 async function getData() {
   try {
     const response = await axios.get('https://calendar-back-end-snowy.vercel.app/home');
@@ -49,6 +53,7 @@ async function getData() {
       console.error('Error fetching data:', error);
   }
 }
+
 
 function createCalendar() {
     for (let i = 0; i < 24; i++) {
