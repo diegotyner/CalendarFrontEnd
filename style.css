@@ -128,10 +128,6 @@ div.cal-data h4 {
   padding: 10px 10px 2px 10px;
   line-height: normal;
 }
-div.cal-data p {
-  margin: 0;
-  padding: 0px 10px 10px 10px;
-}
 
 .cal-data.user1 {
   background-color: aqua;
@@ -145,4 +141,22 @@ div.cal-data p {
 
 .image {
   border: 2px solid var(--clr-dark);
+}
+
+.calendarCardList {
+  background-color: lightpink;
+}
+
+.userCards {
+  padding: 5px
+}
+
+.calendarCard {
+  background-color: #9bc5ee;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 2px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
 }
