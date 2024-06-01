@@ -1,5 +1,6 @@
 // require('dotenv').config();
 // const endpoint = process.env.API_ENDPOINT
+// const { format } = require("util");
 
 const calendar = document.getElementById("calendarWrapper");
 const calendarHead = document.getElementById("calendarHead");
@@ -32,11 +33,17 @@ window.onload = async function() {
     const payload = await getData();
       
     const today = new Date();
-    console.log(today)
+    
+    console.log(today.toISOString().split('T')[0])
+    console.log(today.toUTCString())
     for (let i =0; i<7; i++) {
       const curDay = new Date();
       curDay.setDate(today.getDate() + i);
-      list_dayEvents = payload[curDay.toISOString().split('T')[0]];
+      const UTC_local = formatLocaleDate(curDay.toLocaleDateString())
+
+      
+      console.log(UTC_local)
+      const list_dayEvents = payload[UTC_local];
       updateCalendar(list_dayEvents, i);
 
     }    
@@ -45,6 +52,13 @@ window.onload = async function() {
 document.getElementById("logInButton").onclick = function () {
   window.open("https://calendar-back-end-snowy.vercel.app/auth/google/");
 };
+
+function formatLocaleDate(locale_date) {
+  const date_split = locale_date.split('/') // M-D-Y
+  date_split[0] = date_split[0].padStart(2, '0');
+  date_split[1] = date_split[1].padStart(2, '0');
+  return `${date_split[2]}-${date_split[0]}-${date_split[1]}`
+}
 
 async function getData() {
   try {
@@ -59,7 +73,6 @@ async function getData() {
 function createCalendar() {
     for (let i = 0; i < 24; i++) {
         let slot00 = document.createElement("div");
-        // slot00.id = (Math.floor((i/10) % 10)).toString() + (i%10).toString() + ":00";
         slot00.classList.add("time-slot");
         slot00.style.gridRow = "span 2";
         slot00.style.display = "flex";
@@ -294,81 +307,3 @@ class EventObject {
         this.endtime = end;
     }
 }
-
-
-
-
-
-
-// function addEvent(dayNum, time, event) {
-//     // Check if the day exists in the database
-//     if (!eventDatabase[dayNum]) {
-//         eventDatabase[dayNum] = new Map();
-//     }
-
-//     // Check if the time exists for the day
-//     if (!eventDatabase[dayNum].has(time)) {
-//         eventDatabase[dayNum].set(time, []);
-//     }
-
-//     // Add the event to the list of events for that time
-//     eventDatabase[dayNum].get(time).push(event);
-//     let next30 = time + 30
-//     if ((next30%100)/60 >= 1) { next30 += 40 }
-//     if (next30 <= event.end) {
-//         addEvent(dayNum, next30, event)
-//     }     
-// }
-
-// function addEventToCalendar(day, event) {
-//     // day has to be first 2 letters
-//     let dayNum = day_to_num.get(day)
-//     addEvent(dayNum, floorTime(event.start), event)
-//     let col = document.getElementById(day)
-
-//     let newEvent = document.createElement("div");
-//     newEvent.classList.add("event");
-//     newEvent.style.position = "absolute";
-//     newEvent.id = event.id
-//     event_count++
-//     var px_from_top = 40*(Math.floor(event.start / 100) + (event.start%100)/60)
-//     var px_from_bottom = 960 - 40*(Math.floor(event.end / 100) + (event.end%100)/60)
-//     var col_width = col.clientWidth
-//     newEvent.style.inset = 
-//         px_from_top.toString() + "px 5px " 
-//         + px_from_bottom.toString() + "px";
-//     col.appendChild(newEvent)
-
-//     // (Math.floor((i/10) % 10)).toString() + (i%10).toString()
-//     for (let i = 0; i + event.start <= event.end; i += 30) {
-//         let curTime = i + event.start;
-//         if ((curTime%100)/60 >= 1) { 
-//             curTime += 40 
-//         }
-//         let events = eventDatabase[dayNum].get(curTime)
-//         if (!events) { continue }
-//         for (let j = 1; j < events.length; j++){
-//             let html_element = document.getElementById(events[j].id)
-//             var px_from_top = 40*(Math.floor(events[j].start / 100) + (events[j].start%100)/60)
-//             var px_from_bottom = 960-40*(Math.floor(events[j].end / 100) + (events[j].end%100)/60)
-//             var col_width = col.clientWidth
-//             var px_from_left = (j / events.length) * col_width
-//             var px_from_right = col_width - ((j +1) / events.length)*col_width
-//             html_element.style.inset = 
-//                 px_from_top.toString() + "px " 
-//                 + px_from_right.toString() + "px " 
-//                 + px_from_bottom.toString() + "px " 
-//                 + px_from_left.toString() + "px";
-//             html_element.style.zIndex = j;
-//         }
-//     }
-// }
-
-// function floorTime(time) {
-//     let minutes = time%100;
-//     time -= minutes;
-//     return time;
-// }
-
-
-
