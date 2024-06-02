@@ -143,9 +143,10 @@ div.cal-data h4 {
   border: 2px solid var(--clr-dark);
 }
 
-/* .calendarCardList {
-  background-color: lightpink;
-} */
+.calendarCardList {
+  width: 11%;
+  /* background-color: lightpink; */
+}
 
 /* .userCard {} */
 
@@ -157,6 +158,8 @@ span {
 }
 
 .calendarCard {
+  width: 88%;
+
   background-color: #9bc5ee;
   border-radius: 5px;
   padding: 5px;
@@ -168,7 +171,7 @@ span {
   overflow: hidden;
 }
 
-.usernameRow {
+.usernameRow {  
   background-color: #9bc5ee;
   border-radius: 5px;
   padding: 5px;
