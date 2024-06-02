@@ -396,8 +396,6 @@ function updateCalendar(event_list, day, formatted_date) {
     }
 };
 
-//roop
-
 
 class EventObject { 
     constructor(id, user, calendar, name, date, description, start, end) {
