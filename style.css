@@ -15,7 +15,7 @@
 
 body {
   margin: 5em 0 0 0;
-  padding: 5px;
+  padding: 40px;
   word-spacing: 1.4px;
   font-family: 'Roboto', sans-serif;
   color: var(--clr-dark);
@@ -143,12 +143,17 @@ div.cal-data h4 {
   border: 2px solid var(--clr-dark);
 }
 
-.calendarCardList {
+/* .calendarCardList {
   background-color: lightpink;
-}
+} */
 
-.userCards {
-  padding: 5px
+/* .userCard {} */
+
+span {
+  padding-left: 15px;
+  padding-right: 15px;
+  text-align: center;
+  overflow: hidden;
 }
 
 .calendarCard {
@@ -156,7 +161,20 @@ div.cal-data h4 {
   border-radius: 5px;
   padding: 5px;
   margin: 2px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  margin-left: 12%;
+  overflow: hidden;
+}
+
+.usernameRow {
+  background-color: #9bc5ee;
+  border-radius: 5px;
+  padding: 5px;
+  margin: 2px;
   font-size: 0.9rem;
   display: flex;
   align-items: center;
+  overflow: hidden;
 }

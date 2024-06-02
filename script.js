@@ -7,51 +7,120 @@ const calendarHead = document.getElementById("calendarHead");
 
 
 
-eventDatabase = []
+const eventDatabase = new Map()
+const shownEventDatabase = new Map()
 /* Structure of DS:
     eventDatabase (list containing dicts)
     | index by day
     --> daysEvents (list of events)
 */
 
-const day_to_num = new Map([
-    ["Mo", 0], // Monday
-    ["Tu", 1], // Tuesday
-    ["We", 2], // Wednesday
-    ["Th", 3], // Thursday
-    ["Fr", 4], // Friday
-    ["Sa", 5], // Saturday
-    ["Su", 6]  // Sunday
-]);
-days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-event_count = 0;
+// Hash by ID. If calendar in this map, then it is shown. If not, do not show.
+const shownCalendars = new Map() 
 
+const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+
+const testing_calendarList = [
+  {
+    username: "Alice",
+    calendarList: [
+      { id: "cal1", summary: "Work Calendar" },
+      { id: "cal2", summary: "Personal Calendar" }
+    ]
+  },
+  {
+    username: "Bob",
+    calendarList: [
+      { id: "cal3", summary: "Work Calendar" },
+      { id: "cal4", summary: "Gym Schedule" }
+    ]
+  }
+];
 
 window.onload = async function() {
-    createCalendar();
+  createCalendar();
 
-    const payload = await getData();
-      
-    const today = new Date();
+  const payload = await getData();
     
-    console.log(today.toISOString().split('T')[0])
-    console.log(today.toUTCString())
-    for (let i =0; i<7; i++) {
-      const curDay = new Date();
-      curDay.setDate(today.getDate() + i);
-      const UTC_local = formatLocaleDate(curDay.toLocaleDateString())
+  const today = new Date();
+  
+  console.log(today.toISOString().split('T')[0])
+  console.log(today.toUTCString())
 
-      
-      console.log(UTC_local)
-      const list_dayEvents = payload[UTC_local];
-      updateCalendar(list_dayEvents, i);
+  createCalendarCardList(testing_calendarList)
 
-    }    
+  for (let i =0; i<7; i++) {
+    const curDay = new Date();
+    curDay.setDate(today.getDate() + i);
+    const UTC_local = formatLocaleDate(curDay.toLocaleDateString())
+
+    
+    console.log(UTC_local)
+    const list_dayEvents = payload[UTC_local];
+    updateCalendar(list_dayEvents, i, UTC_local);
+  }    
 }
 
 document.getElementById("logInButton").onclick = function () {
   window.open("https://calendar-back-end-snowy.vercel.app/auth/google/");
 };
+
+
+/* Assuming the cal list will have the following structure:
+      list -> users -> cals
+
+  divs have structure: 
+      cardList -> userCards -> uernameRow -> calendar Card
+*/
+
+
+const cardList = document.getElementById("calendarCardList");
+function createCalendarCardList(calendarList) {
+  for (user of calendarList) {
+    let usernameRow = document.createElement("nav");
+    usernameRow.classList.add("usernameRow", "navbar-expand-xxl", "navbar-light");
+
+    let toggler = document.createElement("button");
+    toggler.classList.add("navbar-toggler")
+    toggler.setAttribute("type", "button");
+    toggler.setAttribute("data-toggle", "collapse");
+    toggler.setAttribute("data-target", "#" + user.username + "_collapse");
+    
+    let span = document.createElement("span");
+    span.classList.add("navbar-toggler-icon");
+    toggler.appendChild(span);
+    usernameRow.appendChild(toggler);
+
+    let username = document.createElement("span");
+    username.innerHTML = user.username;  // WILL NEED TO UPDATE
+    usernameRow.appendChild(username);
+
+
+    let userCard = document.createElement("div");
+    userCard.classList.add("userCard", "collapse", "navbar-expand-xxl");
+    userCard.setAttribute("id", user.username + "_collapse");
+
+    for (cal of user.calendarList) {
+      let calendarCard = document.createElement("div");
+      calendarCard.classList.add("calendarCard");
+      userCard.appendChild(calendarCard);
+
+      let checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = cal.id;
+      checkbox.checked = true;
+      calendarCard.appendChild(checkbox);
+      
+      let calName = document.createElement("span");
+      calName.innerHTML = cal.summary;
+      calendarCard.appendChild(calName);
+    }
+    cardList.appendChild(usernameRow)
+    cardList.appendChild(userCard);
+  }
+}
+
 
 function formatLocaleDate(locale_date) {
   const date_split = locale_date.split('/') // M-D-Y
@@ -115,7 +184,7 @@ function createCalendar() {
 
 
 
-function updateCalendar(event_list, day) {
+function updateCalendar(event_list, day, formatted_date) {
     var STARTTIME = 0,
       ENDTIME = 24,
       HEIGHTOFHOUR = 40,
@@ -228,6 +297,9 @@ function updateCalendar(event_list, day) {
           var size_time_b = hours_b + minutes_b / 60;
           return size_time_a - size_time_b;
         });
+
+        eventDatabase[formatted_date] = events
+        shownEventDatabase[formatted_date] = events
 
         var numEvents = events.length;
         var event, e, pos, stH, stM, etH, etM, height;
