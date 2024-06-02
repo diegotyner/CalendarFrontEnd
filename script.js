@@ -7,8 +7,7 @@ const calendarHead = document.getElementById("calendarHead");
 
 
 
-const eventDatabase = new Map()
-const shownEventDatabase = new Map()
+const eventDatabase = new Map();
 /* Structure of DS:
     eventDatabase (list containing dicts)
     | index by day
@@ -16,7 +15,7 @@ const shownEventDatabase = new Map()
 */
 
 // Hash by ID. If calendar in this map, then it is shown. If not, do not show.
-const shownCalendars = new Map() 
+const shownCalendars = new Set() ;
 
 const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
@@ -38,6 +37,7 @@ const testing_calendarList = [
   }
 ];
 
+let initialized = false;
 window.onload = async function() {
   createCalendar();
 
@@ -45,21 +45,28 @@ window.onload = async function() {
     
   const today = new Date();
   
-  console.log(today.toISOString().split('T')[0])
-  console.log(today.toUTCString())
+  console.log(today.toISOString().split('T')[0]);
+  console.log(today.toUTCString());
 
-  createCalendarCardList(testing_calendarList)
+  createCalendarCardList(testing_calendarList);
+  // for (const user of payload[1]) { // Assuming that this is the calendars
+  //   for (const cal of user.calendarList) { // Going through each user to get calendars
+  //     shownCalendars[cal.id] = cal
+  //   }
+  // }
 
   for (let i =0; i<7; i++) {
     const curDay = new Date();
     curDay.setDate(today.getDate() + i);
-    const UTC_local = formatLocaleDate(curDay.toLocaleDateString())
+    const UTC_local = formatLocaleDate(curDay.toLocaleDateString());
 
     
-    console.log(UTC_local)
+    console.log(UTC_local);
     const list_dayEvents = payload[UTC_local];
     updateCalendar(list_dayEvents, i, UTC_local);
   }    
+  initialized = true;
+  console.log(eventDatabase);
 }
 
 document.getElementById("logInButton").onclick = function () {
@@ -73,11 +80,9 @@ document.getElementById("logInButton").onclick = function () {
   divs have structure: 
       cardList -> userCards -> uernameRow -> calendar Card
 */
-
-
 const cardList = document.getElementById("calendarCardList");
 function createCalendarCardList(calendarList) {
-  for (user of calendarList) {
+  for (const user of calendarList) {
     let usernameRow = document.createElement("nav");
     usernameRow.classList.add("usernameRow", "navbar-expand-xxl", "navbar-light");
 
@@ -101,7 +106,7 @@ function createCalendarCardList(calendarList) {
     userCard.classList.add("userCard", "collapse", "navbar-expand-xxl");
     userCard.setAttribute("id", user.username + "_collapse");
 
-    for (cal of user.calendarList) {
+    for (const cal of user.calendarList) {
       let calendarCard = document.createElement("div");
       calendarCard.classList.add("calendarCard");
       userCard.appendChild(calendarCard);
@@ -110,6 +115,17 @@ function createCalendarCardList(calendarList) {
       checkbox.type = "checkbox";
       checkbox.id = cal.id;
       checkbox.checked = true;
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          shownCalendars.add(cal.id)
+          updateShownCalendars()
+          console.log("on", cal.id)
+        } else {
+          shownCalendars.delete(cal.id);
+          updateShownCalendars()
+          console.log("off", cal.id)
+        }
+      })
       calendarCard.appendChild(checkbox);
       
       let calName = document.createElement("span");
@@ -118,6 +134,20 @@ function createCalendarCardList(calendarList) {
     }
     cardList.appendChild(usernameRow)
     cardList.appendChild(userCard);
+  }
+}
+
+function updateShownCalendars() {
+  var counter = 0;
+  for (const [formatDate, dayEvents] of eventDatabase.entries()) {
+    const newDayEvents = []
+    for (const e of dayEvents) {
+      if (e.calID in shownCalendars) {
+        newDayEvents.push(e);
+      }
+    }
+    updateCalendar(newDayEvents, counter, formatDate);
+    counter += 1;
   }
 }
 
@@ -203,6 +233,9 @@ function updateCalendar(event_list, day, formatted_date) {
     // object and then get them using array notation.
     var EventsById = {};
     const events = setUpEvents(event_list);
+    if (!initialized) {
+      eventDatabase[formatted_date] = events;
+    }
 
     // load events into timeslots - events must be sorted by starttime already
     var numEvents = events.length;
@@ -297,9 +330,6 @@ function updateCalendar(event_list, day, formatted_date) {
           var size_time_b = hours_b + minutes_b / 60;
           return size_time_a - size_time_b;
         });
-
-        eventDatabase[formatted_date] = events
-        shownEventDatabase[formatted_date] = events
 
         var numEvents = events.length;
         var event, e, pos, stH, stM, etH, etM, height;
