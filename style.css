@@ -44,8 +44,9 @@ body {
   height:fit-content;
 }
 
-.container {
+.containerInner {
   height: 700px;
+  max-width: none !important; 
   overflow-y: auto;
   width: 100%;
   border: 4px solid darkblue;
