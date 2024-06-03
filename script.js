@@ -7,51 +7,161 @@ const calendarHead = document.getElementById("calendarHead");
 
 
 
-eventDatabase = []
+const eventDatabase = new Map();
 /* Structure of DS:
     eventDatabase (list containing dicts)
     | index by day
     --> daysEvents (list of events)
 */
 
-const day_to_num = new Map([
-    ["Mo", 0], // Monday
-    ["Tu", 1], // Tuesday
-    ["We", 2], // Wednesday
-    ["Th", 3], // Thursday
-    ["Fr", 4], // Friday
-    ["Sa", 5], // Saturday
-    ["Su", 6]  // Sunday
-]);
-days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-event_count = 0;
+// Hash by ID. If calendar in this map, then it is shown. If not, do not show.
+const shownCalendars = new Set() ;
+
+const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 
+const testing_calendarList = [
+  {
+    username: "Alice",
+    calendarList: [
+      { id: "cal1", summary: "Work Calendar" },
+      { id: "cal2", summary: "Personal Calendar" }
+    ]
+  },
+  {
+    username: "Bob",
+    calendarList: [
+      { id: "cal3", summary: "Work Calendar" },
+      { id: "cal4", summary: "Gym Schedule" }
+    ]
+  }
+];
+
+let initialized = false;
 window.onload = async function() {
-    createCalendar();
+  createCalendar();
 
-    const payload = await getData();
-      
-    const today = new Date();
+  const payload = await getData();
     
-    console.log(today.toISOString().split('T')[0])
-    console.log(today.toUTCString())
-    for (let i =0; i<7; i++) {
-      const curDay = new Date();
-      curDay.setDate(today.getDate() + i);
-      const UTC_local = formatLocaleDate(curDay.toLocaleDateString())
+  const today = new Date();
+  
+  console.log(today.toISOString().split('T')[0]);
+  console.log(today.toUTCString());
 
-      
-      console.log(UTC_local)
-      const list_dayEvents = payload[UTC_local];
-      updateCalendar(list_dayEvents, i);
+  createCalendarCardList(payload[1]);
+  for (const user of payload[1]) { // Assuming that this is the calendars
+    for (const cal of user.calendarList) { // Going through each user to get calendars
+      shownCalendars.add(cal.id)
+    }
+  }
+  console.log(shownCalendars)
 
-    }    
+  for (let i =0; i<7; i++) {
+    const curDay = new Date();
+    curDay.setDate(today.getDate() + i);
+    const UTC_local = formatLocaleDate(curDay.toLocaleDateString());
+
+    
+    console.log(UTC_local);
+    const list_dayEvents = payload[0][UTC_local];
+    updateCalendar(list_dayEvents, i, UTC_local);
+  }    
+  initialized = true;
+  console.log(eventDatabase);
 }
 
 document.getElementById("logInButton").onclick = function () {
   window.open("https://calendar-back-end-snowy.vercel.app/auth/google/");
 };
+
+function updateShownCalendars() {
+  var counter = 0;
+  console.log("------------------------")
+  for (let [formatDate, dayEvents] of eventDatabase.entries()) {
+    const newDayEvents = []
+    for (const e of dayEvents) {
+      if (shownCalendars.has(e.calendarID)) {
+        newDayEvents.push(e);
+        console.log("i shown")
+      } else {
+        console.log("i am not shown")
+      }
+    }
+    console.log(newDayEvents, formatDate)   
+    updateCalendar(newDayEvents, counter, formatDate);
+    counter += 1;
+  }
+}
+
+/* Assuming the cal list will have the following structure:
+      list -> users -> cals
+
+  divs have structure: 
+      cardList -> userCards -> uernameRow -> calendar Card
+*/
+const cardList = document.getElementById("calendarCardList");
+function createCalendarCardList(calendarList) {
+  for (const user of calendarList) {
+    let usernameRow = document.createElement("nav");
+    usernameRow.classList.add("usernameRow", "navbar-expand-xxl", "navbar-light");
+
+    let toggler = document.createElement("button");
+    toggler.classList.add("navbar-toggler")
+    toggler.setAttribute("type", "button");
+    toggler.setAttribute("data-toggle", "collapse");
+    toggler.setAttribute("data-target", "#" + user.username.split(" ")[0] + "_collapse");
+    
+    let span = document.createElement("span");
+    span.classList.add("navbar-toggler-icon");
+    toggler.appendChild(span);
+    usernameRow.appendChild(toggler);
+
+    let username = document.createElement("span");
+    username.innerHTML = user.username.split(" ")[0];
+    usernameRow.appendChild(username);
+
+
+    let userCard = document.createElement("div");
+    userCard.classList.add("userCard", "collapse", "navbar-expand-xxl");
+    userCard.setAttribute("id", user.username.split(" ")[0] + "_collapse");
+
+    for (const cal of user.calendarList) {
+      if (cal.id.endsWith("group.v.calendar.google.com")) { // If its this calendar, its an irrelevant Google Calendar (holidays, etc)
+        continue
+      }
+      let calendarCard = document.createElement("div");
+      calendarCard.classList.add("calendarCard");
+      userCard.appendChild(calendarCard);
+
+      let checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.id = cal.id;
+      checkbox.checked = true;
+      checkbox.addEventListener('change', function() {
+        if (this.checked) {
+          shownCalendars.add(cal.id)
+          updateShownCalendars()
+          console.log("------- done -------")
+        } else {
+          shownCalendars.delete(cal.id);
+          updateShownCalendars()
+          console.log("------- done -------")
+        }
+      })
+      calendarCard.appendChild(checkbox);
+      
+      let calName = document.createElement("span");
+      calName.innerHTML = cal.summary;
+      calendarCard.appendChild(calName);
+    }
+    cardList.appendChild(usernameRow)
+    cardList.appendChild(userCard);
+  }
+}
+
+
+// 57te2485vd18fuioe4rgogd4doinlhji@import.calendar.google.com
+// "57te2485vd18fuioe4rgogd4doinlhji@import.calendar.google.com"
 
 function formatLocaleDate(locale_date) {
   const date_split = locale_date.split('/') // M-D-Y
@@ -115,101 +225,117 @@ function createCalendar() {
 
 
 
-function updateCalendar(event_list, day) {
-    var STARTTIME = 0,
-      ENDTIME = 24,
-      HEIGHTOFHOUR = 40,
-      h, m, e,
-      ts, event, leftindex;
-    
-    var MINUTESINDAY = (ENDTIME - STARTTIME) * 60;
-    
-    var timeslots = [];
-    for (m=0; m<MINUTESINDAY; m++) {
-      timeslots.push([]);
-    }
-    
-    // the eventids will probably come from a database and cannot be numeric so we
-    // use the EventsById object as a kind of lookup - well use the ids as properties of this
-    // object and then get them using array notation.
-    var EventsById = {};
-    const events = setUpEvents(event_list);
 
-    // load events into timeslots - events must be sorted by starttime already
-    var numEvents = events.length;
-    for (e=0; e<numEvents; e++) {
-      event = events[e];
-      for (m=event.start; m<event.stop; m++) {
-        timeslots[m].push(event.id);
-      }
+function updateCalendar(event_list, day, formatted_date) {
+  console.log('Function before setup:', event_list);
+
+  var STARTTIME = 0,
+    ENDTIME = 24,
+    HEIGHTOFHOUR = 40,
+    h, m, e,
+    ts, event, leftindex;
+  
+  var MINUTESINDAY = (ENDTIME - STARTTIME) * 60;
+  
+  // Clear existing events from the calendar column
+  var calendarColumn = document.getElementById(day);
+  while (calendarColumn.firstChild) {
+    calendarColumn.removeChild(calendarColumn.firstChild);
+  }
+
+  var timeslots = [];
+  for (m=0; m<MINUTESINDAY; m++) {
+    timeslots.push([]);
+  }
+  
+  // the eventids will probably come from a database and cannot be numeric so we
+  // use the EventsById object as a kind of lookup - well use the ids as properties of this
+  // object and then get them using array notation.
+  var EventsById = {};
+  const events = setUpEvents(event_list);
+  if (!initialized) {
+    eventDatabase.set(formatted_date, events);
+  } 
+  console.log('Events after setup:', events);
+
+
+  // load events into timeslots - events must be sorted by starttime already
+  var numEvents = events.length;
+  for (e=0; e<numEvents; e++) {
+    event = events[e];
+    for (m=event.start; m<event.stop; m++) {
+      timeslots[m].push(event.id);
     }
+  }
+  
+  // take the timeslots one at a time
+  // for each event in the timeslot make sure that it has the right numcolumns (max amount for that event)
+  // then check if its leftindex has been set
+  // if not then set it.  find the first free space in that timeslot
+  for (m=0; m<MINUTESINDAY; m++) {
+    ts = timeslots[m];
+    for (e=0; e<ts.length; e++) {
+      event = EventsById[ ts[e] ];
+      var max = ts.length;
+      ts.forEach(function(id){
+          var evt = EventsById[id];
+          max=(evt.numcolumns>max)?evt.numcolumns:max;
+        });
     
-    // take the timeslots one at a time
-    // for each event in the timeslot make sure that it has the right numcolumns (max amount for that event)
-    // then check if its leftindex has been set
-    // if not then set it.  find the first free space in that timeslot
-    for (m=0; m<MINUTESINDAY; m++) {
-      ts = timeslots[m];
-      for (e=0; e<ts.length; e++) {
-        event = EventsById[ ts[e] ];
-        var max = ts.length;
-        ts.forEach(function(id){
-            var evt = EventsById[id];
-            max=(evt.numcolumns>max)?evt.numcolumns:max;
-          });
+      if (event.numcolumns <= max) {    
+        event.numcolumns = max;
+      }
       
-        if (event.numcolumns <= max) {    
-          event.numcolumns = max;
+      if (event.leftindex == -1) {
+        leftindex = 0;
+        while (! isFreeSpace(ts, leftindex, event.id)) {
+            leftindex++;
         }
-       
-        if (event.leftindex == -1) {
-          leftindex = 0;
-          while (! isFreeSpace(ts, leftindex, event.id)) {
-              leftindex++;
-          }
-          event.leftindex = leftindex;
+        event.leftindex = leftindex;
+      }
+    }
+  }
+  // UPDATE CODE AFTER COMMENT
+  // fix numcolumns
+  for (m=0; m<MINUTESINDAY; m++) {
+    ts = timeslots[m];
+    for (e=0; e<ts.length; e++) {
+      event = EventsById[ ts[e] ];
+      var max = ts.length;
+      ts.forEach(function(id){
+          var evt = EventsById[id];
+          max=(evt.numcolumns>max)?evt.numcolumns:max;
+        });
+    
+      if (event.numcolumns <= max) {    
+        event.numcolumns = max;
+      }
+    }
+  }
+  
+  layoutEvents(day);
+  
+  function isFreeSpace(ts, leftindex, eventid) {
+    var tslength = ts.length;
+    var event;
+    for (var i=0; i<tslength; ++i) {
+      // get the event in this timeslot location
+      event = EventsById[ts[i]];
+      if (event.leftindex == leftindex) {
+        if (event.id != eventid) {
+          return false; // left index taken
+        } else {
+          return true; // this event is in this place
         }
       }
     }
-    // UPDATE CODE AFTER COMMENT
-    // fix numcolumns
-    for (m=0; m<MINUTESINDAY; m++) {
-      ts = timeslots[m];
-      for (e=0; e<ts.length; e++) {
-        event = EventsById[ ts[e] ];
-        var max = ts.length;
-        ts.forEach(function(id){
-            var evt = EventsById[id];
-            max=(evt.numcolumns>max)?evt.numcolumns:max;
-          });
-      
-        if (event.numcolumns <= max) {    
-          event.numcolumns = max;
-        }
-      }
-    }
-    
-    layoutEvents(day);
-    
-    function isFreeSpace(ts, leftindex, eventid) {
-      var tslength = ts.length;
-      var event;
-      for (var i=0; i<tslength; ++i) {
-        // get the event in this timeslot location
-        event = EventsById[ts[i]];
-        if (event.leftindex == leftindex) {
-          if (event.id != eventid) {
-            return false; // left index taken
-          } else {
-            return true; // this event is in this place
-          }
-        }
-      }
-      return true;
-    }
-    
-    function setUpEvents(event_list) {
-        const events = event_list.filter(event => event.starttime.split('T').length > 1);
+    return true;
+  }
+  
+  function setUpEvents(event_list) {
+      let events;
+      if (!initialized) {
+        events = event_list.filter(event => event.starttime.split('T').length > 1);
         events.forEach(event => {
           event.starttime = event.starttime.split('T')[1]
           event.endtime = event.endtime.split('T')[1]
@@ -228,70 +354,73 @@ function updateCalendar(event_list, day) {
           var size_time_b = hours_b + minutes_b / 60;
           return size_time_a - size_time_b;
         });
-
-        var numEvents = events.length;
-        var event, e, pos, stH, stM, etH, etM, height;
-
-        for (e=0; e<numEvents; e++) {
-            event = events[e];
-            event.leftindex = -1;
-            event.numcolumns = 0;
-            pos = event.starttime.indexOf(':');
-            stH = parseInt( event.starttime.substr(0, pos), 10);
-            stM = parseInt( event.starttime.substr(pos+1), 10) / 60;
-            // need its positions top and bottom in minutes
-            event.start = ((stH - STARTTIME) * 60) + (stM * 60);
-            event.topPos = ((stH - STARTTIME) * HEIGHTOFHOUR) + (stM * HEIGHTOFHOUR);
-            
-            pos = event.endtime.indexOf(':');
-            etH = parseInt( event.endtime.substr(0, pos), 10);
-            etM = parseInt( event.endtime.substr(pos+1), 10) / 60;
-            // need its positions top and bottom in minutes
-            event.stop = ((etH - STARTTIME) * 60) + (etM * 60);
-            
-            height = (etH - stH) * HEIGHTOFHOUR;
-            height -= stM * HEIGHTOFHOUR;
-            height += etM * HEIGHTOFHOUR;
-            event.height = height;
-            EventsById[event.id] = event;
-        }  
-        return events
-    }
-    
-    function layoutEvents(column_id) {
-      var numEvents = events.length;
-      var event, e, numx, xfactor, left;
-      
-      for (e=0; e<numEvents; e++) {
-        event = events[e];
-        
-        numx = event.numcolumns;
-        xfactor = 1 / numx;
-        left = (event.leftindex * xfactor * 100);
-        
-
-        
-        // Create a new div element
-        var cal_data = document.createElement("div");
-        cal_data.className = "cal-data";
-        cal_data.id = "cal-data-" + event.id;
-        cal_data.innerHTML = "<h4>" + event.starttime + " - " + event.endtime + '#' + numx + "</h4>";
-        cal_data.style.top = Math.round(event.topPos) + "px";
-        cal_data.style.height = Math.round(event.height) + "px";
-        cal_data.style.width = Math.floor(100 * xfactor) + "%";
-        cal_data.style.left = left + "%";
-
-        // console.log(event)
-        if (event.user == "diegotyner59000@gmail.com") {
-          cal_data.classList.add("user1")
-        } else {
-          cal_data.classList.add("user2")
-        }
-
-        document.getElementById(column_id).appendChild(cal_data);
-
+      } else {
+        events = event_list;
       }
+
+      var numEvents = events.length;
+      var event, e, pos, stH, stM, etH, etM, height;
+
+      for (e=0; e<numEvents; e++) {
+          event = events[e];
+          event.leftindex = -1;
+          event.numcolumns = 0;
+          pos = event.starttime.indexOf(':');
+          stH = parseInt( event.starttime.substr(0, pos), 10);
+          stM = parseInt( event.starttime.substr(pos+1), 10) / 60;
+          // need its positions top and bottom in minutes
+          event.start = ((stH - STARTTIME) * 60) + (stM * 60);
+          event.topPos = ((stH - STARTTIME) * HEIGHTOFHOUR) + (stM * HEIGHTOFHOUR);
+          
+          pos = event.endtime.indexOf(':');
+          etH = parseInt( event.endtime.substr(0, pos), 10);
+          etM = parseInt( event.endtime.substr(pos+1), 10) / 60;
+          // need its positions top and bottom in minutes
+          event.stop = ((etH - STARTTIME) * 60) + (etM * 60);
+          
+          height = (etH - stH) * HEIGHTOFHOUR;
+          height -= stM * HEIGHTOFHOUR;
+          height += etM * HEIGHTOFHOUR;
+          event.height = height;
+          EventsById[event.id] = event;
+      }  
+      return events
+  }
+  
+  function layoutEvents(column_id) {
+    var numEvents = events.length;
+    var event, e, numx, xfactor, left;
+    
+    for (e=0; e<numEvents; e++) {
+      event = events[e];
+      
+      numx = event.numcolumns;
+      xfactor = 1 / numx;
+      left = (event.leftindex * xfactor * 100);
+      
+
+      
+      // Create a new div element
+      var cal_data = document.createElement("div");
+      cal_data.className = "cal-data";
+      cal_data.id = "cal-data-" + event.id;
+      cal_data.innerHTML = "<h4>" + event.starttime + " - " + event.endtime + '#' + numx + "</h4>";
+      cal_data.style.top = Math.round(event.topPos) + "px";
+      cal_data.style.height = Math.round(event.height) + "px";
+      cal_data.style.width = Math.floor(100 * xfactor) + "%";
+      cal_data.style.left = left + "%";
+
+      // console.log(event)
+      if (event.user == "diegotyner59000@gmail.com") {
+        cal_data.classList.add("user1")
+      } else {
+        cal_data.classList.add("user2")
+      }
+
+      document.getElementById(column_id).appendChild(cal_data);
+
     }
+  }
 };
 
 

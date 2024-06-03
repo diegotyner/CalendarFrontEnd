@@ -5,26 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Risego Corp (Official)</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
     <div id="row1">
+        <div id="calendarCardList" class="calendarCardList"></div>
+        
         <div class="calendarContainer" id="wholeCalendarWrapper">
             <div class="containerHead" id="calendarHead">
                 <div class="filler"></div>
             </div>
-            <div class="container" id="calendarWrapper">
+            <div class="containerInner" id="calendarWrapper">
                 <div class="filler"></div>
             </div>
-        </div>
+        </div> 
 
         <div class="rightOfRow1">
-            <button id="logInButton" class="submit-button" >Add Calendar Credentials</button>
+            <button id="logInButton" class="submit-button"> Add Calendar Credentials </button>
             <img src="imgs/literally_us_cats.jpg" class="image" alt="2 cute cats cuddling" width="264" height="400">
         </div>
     </div>
-    
-
 <script src="script.js"></script>
 </body>
 </html>
