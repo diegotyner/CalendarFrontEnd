@@ -91,6 +91,10 @@ body {
   position: sticky;
   text-align: center;
   background-color: #D5FFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%; /* Ensure the divs have a defined height */
 }
 
 .filler {
