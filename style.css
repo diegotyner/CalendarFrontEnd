@@ -15,7 +15,7 @@
 
 body {
   margin: 5em 0 0 0;
-  padding: 40px;
+  padding-top: 60px;
   word-spacing: 1.4px;
   font-family: 'Roboto', sans-serif;
   color: var(--clr-dark);
@@ -33,7 +33,7 @@ body {
 
 .rightOfRow1 {
   display: flex;
-  height: 70%;
+  height: 65%;
   flex-direction: column;
   justify-content: space-around;
 }
