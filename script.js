@@ -404,7 +404,7 @@ function updateCalendar(event_list, day, formatted_date) {
       var cal_data = document.createElement("div");
       cal_data.className = "cal-data";
       cal_data.id = "cal-data-" + event.id;
-      cal_data.innerHTML = "<h4>" + event.starttime + " - " + event.endtime + '#' + numx + "</h4>";
+      cal_data.innerHTML = "<h4>" + event.name + "</h4>";
       cal_data.style.top = Math.round(event.topPos) + "px";
       cal_data.style.height = Math.round(event.height) + "px";
       cal_data.style.width = Math.floor(100 * xfactor) + "%";
