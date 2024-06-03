@@ -152,11 +152,15 @@ div.cal-data h4 {
 
 /* .userCard {} */
 
-span {
+.calendarCard > span, .usernameRow > span {
   padding-left: 15px;
   padding-right: 15px;
   text-align: center;
   overflow: hidden;
+}
+
+.time-slot > span {
+  font-size: 0.95rem;
 }
 
 .calendarCard {

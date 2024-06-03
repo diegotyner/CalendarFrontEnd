@@ -189,7 +189,10 @@ function createCalendar() {
         slot00.style.justifyContent = "center";
         slot00.style.alignItems = "center";
         let span = document.createElement("span")
-        span.innerHTML += (Math.floor((i/10) % 10)).toString() + (i%10).toString() + ":00";
+        // span.innerHTML += (Math.floor((i/10) % 10)).toString() + (i%10).toString() + ":00"; // Military Time
+        let timeString = i%12 === 0 ? (12).toString() + ":00" : (i%12).toString() + ":00";
+        timeString = i<12 ? timeString + "AM" : timeString + "PM";
+        span.innerHTML += timeString;
         slot00.appendChild(span)
         calendar.append(slot00);
         let lightgray = document.createElement("div");
