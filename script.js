@@ -153,6 +153,14 @@ function createCalendarCardList(calendarList) {
       let calName = document.createElement("span");
       calName.innerHTML = cal.summary;
       calendarCard.appendChild(calName);
+        // Add click event listener to the calendarCard to toggle the checkbox
+      calendarCard.addEventListener('click', function(event) {
+        // Check if the click was directly on the checkbox to prevent toggling it twice
+        if (event.target !== checkbox) {
+          checkbox.checked = !checkbox.checked;
+          checkbox.dispatchEvent(new Event('change')); // Trigger the 'change' event manually
+        }
+      });
     }
     cardList.appendChild(usernameRow)
     cardList.appendChild(userCard);

@@ -14,9 +14,8 @@
 }
 
 body {
-  margin: 5em 0 0 0;
   word-spacing: 1.4px;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Times New Roman', Times, serif; 
   color: var(--clr-dark);
   background-color: var(--clr-light); 
 }
@@ -222,6 +221,11 @@ div.cal-data h4 {
   margin-left: 12%;
   overflow: hidden;
 }
+
+.calendarCard:hover {
+  box-shadow: 0 0 10px rgba(8, 23, 49, 0.8); /* Intensify the glow on hover */
+}
+
 
 .usernameRow {  
   background-color: #9bc5ee;
