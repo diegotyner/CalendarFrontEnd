@@ -48,6 +48,7 @@ window.onload = async function() {
   console.log(today.toISOString().split('T')[0]);
   console.log(today.toUTCString());
 
+  console.log(payload[1])
   createCalendarCardList(payload[1]);
   for (const user of payload[1]) { // Assuming that this is the calendars
     for (const cal of user.calendarList) { // Going through each user to get calendars
@@ -120,6 +121,31 @@ function createCalendarCardList(calendarList) {
     username.innerHTML = user.username.split(" ")[0];
     usernameRow.appendChild(username);
 
+    let burpeeRow = document.createElement("div");
+    burpeeRow.classList.add("BurpeeCount")
+    let addBurp = document.createElement("button");
+    addBurp.addEventListener('click', function() {
+      changeBurpees(user.email, 5);
+    });
+    addBurp.classList.add("BurpButton");
+    addBurp.innerHTML = "+";
+    let dumbFiller = document.createElement("div");
+    let burpCount = document.createElement("span");
+    burpCount.innerHTML = "[20]";
+    let minusBurp = document.createElement("button");
+    minusBurp.addEventListener('click', function() {
+      changeBurpees(user.email, -5);
+    });
+    minusBurp.classList.add("BurpButton");
+    minusBurp.innerHTML = "-";
+    burpeeRow.appendChild(addBurp);
+    burpeeRow.appendChild(burpCount);
+    burpeeRow.appendChild(minusBurp);
+    usernameRow.appendChild(burpeeRow);
+    // dumbFiller.appendChild(burpCount);
+    // usernameRow.appendChild(dumbFiller);
+
+
 
     let userCard = document.createElement("div");
     userCard.classList.add("userCard", "collapse", "navbar-expand-xxl");
@@ -167,6 +193,11 @@ function createCalendarCardList(calendarList) {
   }
 }
 
+
+
+function changeBurpees(email, n) {
+  console.log(email, n)
+}
 
 // 57te2485vd18fuioe4rgogd4doinlhji@import.calendar.google.com
 // "57te2485vd18fuioe4rgogd4doinlhji@import.calendar.google.com"

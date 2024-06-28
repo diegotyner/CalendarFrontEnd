@@ -198,8 +198,8 @@ div.cal-data h4 {
 /* .userCard {} */
 
 .calendarCard > span, .usernameRow > span {
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 13px;
+  padding-right: 13px;
   text-align: center;
   overflow: hidden;
 }
@@ -235,5 +235,24 @@ div.cal-data h4 {
   font-size: 0.9rem;
   display: flex;
   align-items: center;
+  justify-content: space-around;
   overflow: hidden;
+}
+
+.BurpeeCount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-right: 5px;
+}
+
+.BurpButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  width: 24px;
+  border: 1px solid grey;
+  border-radius: 4px;
+  background-color: #9bc5ee;
 }
