@@ -4,6 +4,7 @@
 
 const calendar = document.getElementById("calendarWrapper");
 const calendarHead = document.getElementById("calendarHead");
+const endpoint = 'https://calendar-front-end-six.vercel.app';
 
 
 
@@ -20,24 +21,8 @@ const shownCalendars = new Set() ;
 const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 
-const testing_calendarList = [
-  {
-    username: "Alice",
-    calendarList: [
-      { id: "cal1", summary: "Work Calendar" },
-      { id: "cal2", summary: "Personal Calendar" }
-    ]
-  },
-  {
-    username: "Bob",
-    calendarList: [
-      { id: "cal3", summary: "Work Calendar" },
-      { id: "cal4", summary: "Gym Schedule" }
-    ]
-  }
-];
-
 let initialized = false;
+
 window.onload = async function() {
   createCalendar();
 
@@ -72,23 +57,23 @@ window.onload = async function() {
 }
 
 document.getElementById("logInButton").onclick = function () {
-  window.open("https://calendar-back-end-snowy.vercel.app/auth/google/");
+  window.open(endpoint + "/auth/google/");
 };
 
 function updateShownCalendars() {
   var counter = 0;
-  console.log("------------------------")
+  // console.log("------------------------")
   for (let [formatDate, dayEvents] of eventDatabase.entries()) {
     const newDayEvents = []
     for (const e of dayEvents) {
       if (shownCalendars.has(e.calendarID)) {
         newDayEvents.push(e);
-        console.log("i shown")
+        // console.log("i shown")
       } else {
-        console.log("i am not shown")
+        // console.log("i am not shown")
       }
     }
-    console.log(newDayEvents, formatDate)   
+    // console.log(newDayEvents, formatDate)   
     updateCalendar(newDayEvents, counter, formatDate);
     counter += 1;
   }
@@ -129,9 +114,10 @@ function createCalendarCardList(calendarList) {
     });
     addBurp.classList.add("BurpButton");
     addBurp.innerHTML = "+";
-    let dumbFiller = document.createElement("div");
+    // let dumbFiller = document.createElement("div");
     let burpCount = document.createElement("span");
-    burpCount.innerHTML = "[20]";
+    burpCount.innerHTML = `[${user.burpee_count}]`;
+    burpCount.id = `${user.email}_burpee_count`;
     let minusBurp = document.createElement("button");
     minusBurp.addEventListener('click', function() {
       changeBurpees(user.email, -5);
@@ -167,11 +153,11 @@ function createCalendarCardList(calendarList) {
         if (this.checked) {
           shownCalendars.add(cal.id)
           updateShownCalendars()
-          console.log("------- done -------")
+          // console.log("------- done -------")
         } else {
           shownCalendars.delete(cal.id);
           updateShownCalendars()
-          console.log("------- done -------")
+          // console.log("------- done -------")
         }
       })
       calendarCard.appendChild(checkbox);
@@ -195,8 +181,15 @@ function createCalendarCardList(calendarList) {
 
 
 
-function changeBurpees(email, n) {
+async function changeBurpees(email, n) {
   console.log(email, n)
+  try {
+    const response = await axios.post(endpoint + '/home', { email, n });
+    console.log(response.data)
+    document.getElementById(`${email}_burpee_count`).innerText = `[${response.data.burpee_count}]`;
+  } catch (error) {
+    console.error('Error updating burpees:', error);
+  }
 }
 
 // 57te2485vd18fuioe4rgogd4doinlhji@import.calendar.google.com
@@ -211,7 +204,7 @@ function formatLocaleDate(locale_date) {
 
 async function getData() {
   try {
-    const response = await axios.get('https://calendar-back-end-snowy.vercel.app/home');
+    const response = await axios.get(endpoint + '/home');
     return response.data; // Return the data to be used in the calling function
   } catch (error) {
       console.error('Error fetching data:', error);
@@ -269,7 +262,7 @@ function createCalendar() {
 
 
 function updateCalendar(event_list, day, formatted_date) {
-  console.log('Function before setup:', event_list);
+  // console.log('Function before setup:', event_list);
 
   var STARTTIME = 0,
     ENDTIME = 24,
@@ -298,7 +291,7 @@ function updateCalendar(event_list, day, formatted_date) {
   if (!initialized) {
     eventDatabase.set(formatted_date, events);
   } 
-  console.log('Events after setup:', events);
+  // console.log('Events after setup:', events);
 
 
   // load events into timeslots - events must be sorted by starttime already
