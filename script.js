@@ -4,7 +4,7 @@
 
 const calendar = document.getElementById("calendarWrapper");
 const calendarHead = document.getElementById("calendarHead");
-const endpoint = 'https://calendar-front-end-six.vercel.app';
+const endpoint = 'https://calendar-back-end-snowy.vercel.app';
 
 
 
